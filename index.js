@@ -11,7 +11,7 @@ exports.handler = (event, context, callback) => {
         database: "teletok_lambda"
     });
 
-    conn.connect(function(error){
+    conn.connect(function(error) {
         if (error) {
             conn.end(function() {
                 callback(error, {
@@ -27,20 +27,13 @@ exports.handler = (event, context, callback) => {
             });
         }
         else {
-
-            if (event.body !== null && event.body !== undefined) {
-                var bodyBase64 = Buffer.from(event.body, 'base64').toString();
-                var body = querystring.parse(bodyBase64);
-
-
-                var token = body.token;
-                var description = body.description;
+            if (event.queryStringParameters != null) {
+                var id = event.queryStringParameters.id;
 
             }
-            console.log("Conexion correcta a BD");
 
-            var query = "SELECT * FROM teletok_lambda.token where code = ?";
-            var parametros = [token];
+            var query = "SELECT * FROM post where id = ?;";
+            var parametros = [id];
             conn.query(query, parametros, function(error, result) {
                 if (error) {
                     conn.end(function() {
@@ -51,65 +44,30 @@ exports.handler = (event, context, callback) => {
                             },
                             body: JSON.stringify({
                                 "estado": "error",
-                                "msg": error
                             }),
                         });
                     });
                 }
                 else {
-                    if (result[0].id != null && result[0].id != undefined) {
-                        var query = "INSERT INTO post (description, user_id) VALUES (?,?)";
-                        var parametros = [description, result[0].id];
-                        conn.query(query, parametros, function(error, result2) {
-                            if (error) {
-                                conn.end(function() {
-                                    callback(error, {
-                                        statusCode: 400,
-                                        headers: {
-                                            "Content-Type": "application/json"
-                                        },
-                                        body: JSON.stringify({
-                                            "estado": "error al guardar",
-                                        }),
-                                    });
-                                });
-                            }
-                            else {
-                                conn.end(function() {
-                                    callback(null, {
-                                        statusCode: 200,
-                                        headers: {
-                                            "Content-Type": "application/json"
-                                        },
-                                        body: JSON.stringify({
-                                            "estado": "post creado",
-                                            "postid": result2.insertId
-                                        }),
-                                    });
-                                });
-
-                            }
-
+                    conn.end(function() {
+                        callback(null, {
+                            statusCode: 200,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                "estado": "post",
+                                "postid": result
+                            }),
                         });
-
-
-                    }
-                    else {
-                        conn.end(function() {
-                            callback(null, {
-                                statusCode: 400,
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify({
-                                    "estado": "token invalido",
-                                }),
-                            });
-                        });
-                    }
+                    });
 
                 }
+
             });
+
         }
+
     });
+
 };
