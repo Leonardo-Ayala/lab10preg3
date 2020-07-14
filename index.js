@@ -11,7 +11,7 @@ exports.handler = (event, context, callback) => {
         database: "teletok_lambda"
     });
 
-    conn.connect(function(error) {
+    conn.connect(function(error){
         if (error) {
             conn.end(function() {
                 callback(error, {
